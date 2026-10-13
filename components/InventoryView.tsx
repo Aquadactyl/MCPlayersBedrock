@@ -1,0 +1,134 @@
+import React, { useState } from "react";
+import { BookOpen, Crown } from "lucide-react";
+import { InventoryItem, InventorySnapshot } from "./api";
+import ItemIcon, { ITEM_RENDER_SOURCE } from "./ItemIcon";
+import PlayerVitals from "./PlayerVitals";
+
+const itemName = (id: string) =>
+  id
+    .split(":")
+    .at(-1)!
+    .replaceAll("_", " ")
+    .replace(/\b\w/gu, (char) => char.toUpperCase());
+
+export default function InventoryView({ data }: { data: InventorySnapshot }) {
+  const [selected, setSelected] = useState<InventoryItem | null>(null);
+  const grid = (title: string, slots: number[], items: InventoryItem[], equipment = false) => (
+    <section className="mbp-inventory-section">
+      <h3>{title}</h3>
+      <div className={`mbp-slot-grid ${equipment ? "mbp-equipment-grid" : ""}`}>
+        {slots.map((slot) => {
+          const item = items.find((entry) => entry.slot === slot);
+          const label = equipment
+            ? (
+                { 103: "Head", 102: "Chest", 101: "Legs", 100: "Feet", 150: "Offhand" } as Record<
+                  number,
+                  string
+                >
+              )[slot]
+            : `Slot ${slot}`;
+          return (
+            <div key={slot} className="mbp-slot-wrap">
+              <button
+                type="button"
+                className={`mbp-slot ${!equipment && title === "Hotbar" && data.selected_slot === slot ? "mbp-slot-held" : ""}`}
+                disabled={!item}
+                aria-label={`${label}: ${item ? `${itemName(item.id)} × ${item.count}` : "Empty"}`}
+                title={`${label}: ${item ? `${itemName(item.id)} × ${item.count}` : "Empty"}`}
+                onClick={() => setSelected(item ?? null)}
+              >
+                {item && (
+                  <>
+                    <ItemIcon id={item.id} />
+                    <span className="mbp-item-count">{item.count}</span>
+                  </>
+                )}
+              </button>
+              {equipment && <small>{label}</small>}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+  const saved =
+    data.saved_at && Number.isFinite(new Date(data.saved_at).getTime())
+      ? new Date(data.saved_at).toLocaleString()
+      : "Unknown save time";
+  return (
+    <div className="mbp-inventory-view">
+      <div className="mbp-alert">
+        <BookOpen size={18} aria-hidden />
+        <div>
+          <strong>Saved inventory snapshot</strong>
+          <p>
+            {saved}. Items may have changed since this snapshot was exported. This view is
+            read-only.
+          </p>
+        </div>
+      </div>
+      <PlayerVitals data={data} />
+      {grid("Equipment", [103, 102, 101, 100, 150], data.inventory, true)}
+      {grid(
+        "Main inventory",
+        Array.from({ length: 27 }, (_, index) => index + 9),
+        data.inventory,
+      )}
+      {grid(
+        "Hotbar",
+        Array.from({ length: 9 }, (_, index) => index),
+        data.inventory,
+      )}
+      {grid(
+        "Ender Chest",
+        Array.from({ length: 27 }, (_, index) => index),
+        data.ender_chest,
+      )}
+      {selected && (
+        <section className="mbp-item-details">
+          <div className="mbp-item-summary">
+            <ItemIcon id={selected.id} />
+            <div>
+              <h3>
+                {itemName(selected.id)} × {selected.count}
+              </h3>
+              <code>{selected.id}</code>
+            </div>
+          </div>
+          <p>Slot {selected.slot}</p>
+          {selected.metadata_truncated ? (
+            <p>Item metadata exceeds the display limit.</p>
+          ) : (
+            <pre>{JSON.stringify(selected.metadata, null, 2)}</pre>
+          )}
+        </section>
+      )}
+      <div className="mbp-saved-state">
+        <Crown size={15} aria-hidden />
+        {(
+          [
+            ["operator", "OP"],
+            ["banned", "Banned"],
+            ["whitelisted", "Whitelisted"],
+          ] as const
+        ).map(([key, label]) => (
+          <span key={key}>
+            {label}: {data.state[key] === null ? "Unknown" : data.state[key] ? "Yes" : "No"}
+          </span>
+        ))}
+      </div>
+      <p className="mbp-player-location">
+        {data.dimension ?? "Unknown dimension"}
+        {data.position ? ` · ${data.position.join(", ")}` : ""}
+      </p>
+      {data.xuid && <p className="mbp-player-uuid">Xbox XUID: {data.xuid}</p>}
+      <p className="mbp-item-credit">
+        Item renders by{" "}
+        <a href={ITEM_RENDER_SOURCE} target="_blank" rel="noreferrer">
+          mc-assets
+        </a>
+        .
+      </p>
+    </div>
+  );
+}

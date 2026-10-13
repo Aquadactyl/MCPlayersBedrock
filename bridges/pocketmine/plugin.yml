@@ -1,0 +1,6 @@
+name: BedrockSnapshots
+main: RepGraphics\BedrockSnapshots\Main
+version: "1.0.0"
+api: "5.0.0"
+author: RepGraphics
+description: Read-only player snapshots for Aquadactyl Bedrock Players

@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "endstone-bedrock-snapshots"
+version = "1.0.0"
+requires-python = ">=3.10"
+dependencies = []
+description = "Read-only player snapshots for Aquadactyl Bedrock Players"
+[project.entry-points.endstone]
+bedrock-snapshots = "endstone_bedrock_snapshots:BedrockSnapshots"
+[tool.setuptools.packages.find]
+include = ["endstone_bedrock_snapshots*"]

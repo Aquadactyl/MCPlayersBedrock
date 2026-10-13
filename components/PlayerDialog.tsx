@@ -1,0 +1,356 @@
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  BookOpen,
+  Crown,
+  LoaderCircle,
+  RefreshCw,
+  Shield,
+  UserRound,
+} from "lucide-react";
+import { Dialog } from "@/components/elements/dialog";
+import Button from "@/components/elements/Button";
+import Input from "@/components/elements/Input";
+import { httpErrorToHuman } from "@/api/http";
+import {
+  getInventory,
+  Player,
+  PlayerAction,
+  PlayerCapabilities,
+  sendPlayerAction,
+  Software,
+} from "./api";
+import InventoryView from "./InventoryView";
+import PlayerAvatar from "./PlayerAvatar";
+
+export const actions: {
+  action: PlayerAction;
+  label: string;
+  description: string;
+  owner?: boolean;
+  reason?: boolean;
+}[] = [
+  {
+    action: "kick",
+    label: "Kick",
+    description: "Disconnect this player from the server. They can rejoin.",
+    reason: true,
+  },
+  {
+    action: "ban",
+    label: "Ban",
+    description: "Ban this player until an administrator unbans them.",
+    reason: true,
+  },
+  { action: "pardon", label: "Unban", description: "Remove this player's username ban." },
+  {
+    action: "op",
+    label: "OP",
+    description: "Grant operator permissions, including powerful server commands.",
+    owner: true,
+  },
+  {
+    action: "deop",
+    label: "De-OP",
+    description: "Remove operator permissions from this player.",
+    owner: true,
+  },
+  {
+    action: "whitelist_add",
+    label: "Add to whitelist",
+    description: "Allow this player to join when the whitelist is enabled.",
+  },
+  {
+    action: "whitelist_remove",
+    label: "Remove from whitelist",
+    description: "Remove this player from the whitelist.",
+  },
+];
+
+export default function PlayerDialog({
+  uuid,
+  player,
+  capabilities,
+  software,
+  onClose,
+  onNotice,
+}: {
+  uuid: string;
+  player: Player;
+  capabilities: PlayerCapabilities;
+  software: Software;
+  onClose: () => void;
+  onNotice: (message: string) => void;
+}) {
+  const [tab, setTab] = useState<"profile" | "inventory">("profile");
+  const [action, setAction] = useState<PlayerAction | null>(null);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState("");
+  const client = useQueryClient();
+  const inventory = useQuery({
+    queryKey: ["bedrockplayers:inventory", uuid, player.name, player.uuid],
+    queryFn: ({ signal }) => getInventory(uuid, player, signal),
+    enabled: tab === "inventory" && capabilities.inventory,
+    staleTime: 10000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const availableActions = actions
+    .filter((entry) => (capabilities.actions ?? []).includes(entry.action))
+    .map((entry) =>
+      entry.action.startsWith("whitelist") && ["bds", "endstone"].includes(software)
+        ? {
+            ...entry,
+            label: entry.label.replace("whitelist", "allowlist"),
+            description: entry.description.replaceAll("whitelist", "allowlist"),
+          }
+        : entry,
+    );
+  const definition = availableActions.find((entry) => entry.action === action);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!action || !definition || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await sendPlayerAction(uuid, player.name, action, reason);
+      const message = `${definition?.label} command for ${player.name} submitted. Check the console for Minecraft's response.`;
+      setSubmitted(message);
+      onNotice(message);
+      setAction(null);
+      setReason("");
+      void client.invalidateQueries({ queryKey: ["bedrockplayers", uuid] });
+      void client.invalidateQueries({ queryKey: ["bedrockplayers:inventory", uuid, player.name] });
+    } catch (failure) {
+      setError(httpErrorToHuman(failure));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog
+      open
+      title={definition ? `${definition.label} ${player.name}` : player.name}
+      description={
+        definition ? definition.description : "Player profile, saved inventory and server actions."
+      }
+      onClose={() => {
+        if (!busy) onClose();
+      }}
+      preventExternalClose={busy}
+      hideCloseIcon={busy}
+    >
+      <div className="mbp-player-dialog">
+        {definition ? (
+          <form onSubmit={(event) => void submit(event)} className="mbp-confirm-action">
+            <div className="mbp-alert mbp-alert-warning">
+              <AlertTriangle size={18} aria-hidden />
+              <div>
+                <strong>{definition.description}</strong>
+                <p>
+                  This sends a command to this Minecraft server. It runs when the server is online.
+                </p>
+              </div>
+            </div>
+            {definition.reason && (
+              <label className="mbp-reason">
+                Reason (optional)
+                <Input
+                  autoFocus
+                  maxLength={120}
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  placeholder="Enter a reason…"
+                />
+              </label>
+            )}
+            {error && (
+              <p className="mbp-tool-error" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="mbp-dialog-actions">
+              <Button
+                isSecondary
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setAction(null);
+                  setError("");
+                  setReason("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                color={action === "ban" || action === "op" ? "red" : "primary"}
+                type="submit"
+                disabled={busy}
+              >
+                <span className="mbp-button-content">
+                  {busy && <LoaderCircle size={15} className="mbp-spin" aria-hidden />}Confirm{" "}
+                  {definition.label}
+                </span>
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="mbp-profile-header">
+              <PlayerAvatar name={player.name} />
+              <div>
+                <strong>{player.name}</strong>
+                <p>Minecraft Bedrock gamertag</p>
+              </div>
+            </div>
+            <div
+              className="mbp-dialog-tabs"
+              role="tablist"
+              aria-label="Player details"
+              onKeyDown={(event) => {
+                if (
+                  !capabilities.inventory ||
+                  !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)
+                )
+                  return;
+                event.preventDefault();
+                const next =
+                  event.key === "Home"
+                    ? "profile"
+                    : event.key === "End"
+                      ? "inventory"
+                      : tab === "profile"
+                        ? "inventory"
+                        : "profile";
+                setTab(next);
+                document.getElementById(`mbp-${next}-tab`)?.focus();
+              }}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === "profile"}
+                tabIndex={tab === "profile" ? 0 : -1}
+                aria-controls="mbp-profile-panel"
+                id="mbp-profile-tab"
+                onClick={() => setTab("profile")}
+              >
+                <UserRound size={15} aria-hidden />
+                Profile & actions
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === "inventory"}
+                tabIndex={tab === "inventory" ? 0 : -1}
+                aria-controls="mbp-inventory-panel"
+                id="mbp-inventory-tab"
+                disabled={!capabilities.inventory}
+                title={
+                  !capabilities.inventory
+                    ? "Requires file read and file content permissions"
+                    : undefined
+                }
+                onClick={() => setTab("inventory")}
+              >
+                <BookOpen size={15} aria-hidden />
+                Saved inventory
+              </button>
+            </div>
+            {submitted && (
+              <p className="mbp-submitted" role="status">
+                {submitted}
+              </p>
+            )}
+            {tab === "profile" ? (
+              <div id="mbp-profile-panel" role="tabpanel" aria-labelledby="mbp-profile-tab">
+                <p className="mbp-permission-note">
+                  Server software: {software === "bds" ? "Bedrock Dedicated Server" : software}.
+                </p>
+                {software === "bds" && (
+                  <p className="mbp-permission-note">
+                    The official server has no native ban command. Use its allowlist controls to
+                    manage access when allowlisting is enabled.
+                  </p>
+                )}
+                <p className="mbp-permission-note">
+                  Inventory and HUD values require a Bedrock snapshot exporter. The avatar is
+                  decorative.
+                </p>
+                {capabilities.moderate && (
+                  <>
+                    <h3 className="mbp-tools-title">
+                      <Shield size={16} aria-hidden />
+                      Server actions
+                    </h3>
+                    <div className="mbp-action-grid">
+                      {availableActions
+                        .filter((entry) => !entry.owner || capabilities.operator)
+                        .map((entry) => (
+                          <Button
+                            key={entry.action}
+                            color="grey"
+                            type="button"
+                            onClick={() => {
+                              setAction(entry.action);
+                              setError("");
+                              setSubmitted("");
+                            }}
+                          >
+                            {entry.label}
+                          </Button>
+                        ))}
+                    </div>
+                    {!capabilities.operator && (
+                      <p className="mbp-permission-note">
+                        <Crown size={13} aria-hidden />
+                        Only the server owner and panel admins can OP or de-OP players.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div id="mbp-inventory-panel" role="tabpanel" aria-labelledby="mbp-inventory-tab">
+                <div className="mbp-inventory-heading">
+                  <h3>Saved inventory</h3>
+                  <Button
+                    size="xsmall"
+                    color="grey"
+                    disabled={inventory.isFetching}
+                    onClick={() => void inventory.refetch()}
+                    aria-label="Refresh saved inventory"
+                  >
+                    <RefreshCw
+                      size={14}
+                      className={inventory.isFetching ? "mbp-spin" : ""}
+                      aria-hidden
+                    />
+                  </Button>
+                </div>
+                {inventory.isError && (
+                  <p className="mbp-tool-error" role="alert">
+                    {httpErrorToHuman(inventory.error)}
+                    {inventory.data &&
+                      " The previous snapshot is shown below; this refresh failed."}
+                  </p>
+                )}
+                {inventory.isPending ? (
+                  <div className="mbp-empty">
+                    <LoaderCircle size={25} className="mbp-spin" aria-hidden />
+                    <p>Reading saved player data…</p>
+                  </div>
+                ) : inventory.data ? (
+                  <InventoryView data={inventory.data} />
+                ) : null}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </Dialog>
+  );
+}

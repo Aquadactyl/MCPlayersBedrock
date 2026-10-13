@@ -1,0 +1,8 @@
+Navigation:
+  Routes:
+    - Name: "Bedrock Players"
+      Path: "/bedrock-players"
+      Type: "server"
+      Component: "PlayersPage"
+      Permission: "'control.console'"
+      AdminOnly: false
