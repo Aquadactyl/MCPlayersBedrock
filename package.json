@@ -1,0 +1,14 @@
+{
+  "name": "aquadactyl-bedrockplayers",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/query.test.mjs",
+    "package": "python tools/package.py",
+    "verify": "python tools/verify_package.py"
+  },
+  "devDependencies": {
+    "gamedig": "5.3.3"
+  }
+}

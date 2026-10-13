@@ -5,11 +5,11 @@ import hashlib
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("edition", nargs="?", choices=["java", "bedrock"], default="java")
+parser.add_argument("edition", nargs="?", choices=["bedrock"], default="bedrock")
 edition = parser.parse_args().edition
 project_root = Path(__file__).resolve().parent.parent
-root = project_root / "bedrock" if edition == "bedrock" else project_root
-identifier = "bedrockplayers" if edition == "bedrock" else "mcplayers"
+root = project_root
+identifier = "bedrockplayers"
 output = project_root / "dist" / (identifier + ".blueprint")
 output.parent.mkdir(exist_ok=True)
 files = [root / "conf.yml", root / "README.md", root / "LICENSE", root / "VALIDATION.md"]

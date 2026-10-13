@@ -2,7 +2,7 @@
 
 Independent Blueprint addon for official Bedrock Dedicated Server, Endstone,
 Nukkit/PowerNukkit and PocketMine-MP. Identifier: `bedrockplayers`, version 1.0.0,
-Blueprint beta-2026-08. Install alongside the Java `mcplayers` addon.
+Blueprint beta-2026-08. Can be installed alongside the Java `mcplayers` addon.
 
 ## Features
 
@@ -124,23 +124,24 @@ use a pinned mc-assets collection through jsDelivr.
 
 ```bash
 npm ci --ignore-scripts
-node --test bedrock/tests/query.test.mjs
-python tools/package.py bedrock
-python tools/verify_package.py bedrock
+npm test
+python tools/package.py
+python tools/verify_package.py
 python tools/package_bridges.py
-python bedrock/tests/test_endstone_bridge.py
+python tests/test_endstone_bridge.py
 ```
 
 UI checks use the installed panel's Vitest runner. PHP fixtures use in-memory
 models, cache and fake Wings repositories. Punitive/privilege-changing commands
 are never tested on a real player. Validation is recorded in VALIDATION.md.
 
-Copy `bedrock/tests/*.spec.ts*` into an installed panel's
+Copy `tests/*.spec.ts*` into an installed panel's
 `resources/scripts/bedrockplayers-tests/`, then run
 `pnpm exec vitest run resources/scripts/bedrockplayers-tests/`. Run the PHP
-fixtures with `php bedrock/tests/backend.php /app`; when copied into a container,
-also copy the original `tests/backend.php` to `/tmp/mcplayers-tests/backend.php`
-so the shared fixtures are available.
+fixtures with `php tests/backend.php /app`; when copied into a container,
+keep `tests/panel.php` beside `tests/backend.php`. These fixtures do not require
+the Java addon. To rebuild the combined exporter ZIP after building all three
+exporters, run `python tools/bundle_bedrock_bridges.py`.
 
 Update with `blueprint -i bedrockplayers`; remove with
 `blueprint -r bedrockplayers`. There are no database migrations.

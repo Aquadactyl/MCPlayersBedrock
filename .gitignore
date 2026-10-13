@@ -1,0 +1,16 @@
+node_modules/
+__pycache__/
+*.py[cod]
+*.log
+.env
+.env.*
+
+# Publish release packages; keep SDKs, build caches and research files local.
+dist/*
+!dist/bedrockplayers.blueprint
+!dist/bedrockplayers.blueprint.sha256
+!dist/bedrock-snapshot-exporters.zip
+!dist/bedrock-snapshot-exporters.zip.sha256
+!dist/bedrock-snapshots-nukkit-1.0.0.jar
+!dist/endstone_bedrock_snapshots-1.0.0-py3-none-any.whl
+!dist/bedrock-snapshots-pocketmine-1.0.0.phar

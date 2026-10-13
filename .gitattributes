@@ -1,0 +1,7 @@
+* text=auto
+*.png binary
+*.blueprint binary
+*.jar binary
+*.whl binary
+*.phar binary
+*.zip binary

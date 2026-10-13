@@ -33,7 +33,7 @@ at the archive root. Endstone's wheel can be rebuilt with
 `python tools/package_bridges.py`. PocketMine's PHAR can be built with:
 
 ```bash
-php -d phar.readonly=0 bedrock/bridges/pocketmine/build.php bedrock/bridges/pocketmine OUTPUT.phar
+php -d phar.readonly=0 bridges/pocketmine/build.php bridges/pocketmine OUTPUT.phar
 ```
 
 Source APIs:

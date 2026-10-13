@@ -7,11 +7,11 @@ import zlib
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("edition", nargs="?", choices=["java", "bedrock"], default="java")
+parser.add_argument("edition", nargs="?", choices=["bedrock"], default="bedrock")
 edition = parser.parse_args().edition
 project_root = Path(__file__).resolve().parent.parent
-root = project_root / "bedrock" if edition == "bedrock" else project_root
-package = project_root / "dist" / ("bedrockplayers.blueprint" if edition == "bedrock" else "mcplayers.blueprint")
+root = project_root
+package = project_root / "dist" / "bedrockplayers.blueprint"
 png_count = 0
 with ZipFile(package) as archive:
     assert archive.testzip() is None, "Archive CRC check failed"

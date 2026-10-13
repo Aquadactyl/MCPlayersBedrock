@@ -7,8 +7,9 @@ import hashlib
 import io
 
 root = Path(__file__).resolve().parent.parent
-source = root / "bedrock" / "bridges" / "endstone"
+source = root / "bridges" / "endstone"
 output = root / "dist" / "endstone_bedrock_snapshots-1.0.0-py3-none-any.whl"
+output.parent.mkdir(exist_ok=True)
 info = "endstone_bedrock_snapshots-1.0.0.dist-info"
 files = {path.relative_to(source).as_posix(): path.read_bytes().replace(b"\r\n", b"\n")
          for path in (source / "endstone_bedrock_snapshots").glob("*.py")}
@@ -26,5 +27,6 @@ files[info + "/RECORD"] = records.getvalue().encode("utf-8")
 with ZipFile(output, "w", ZIP_DEFLATED) as archive:
     for name, data in files.items():
         archive.writestr(name, data)
+with ZipFile(output) as archive:
     assert archive.testzip() is None
 print(output)

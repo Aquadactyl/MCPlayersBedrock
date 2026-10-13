@@ -1,8 +1,7 @@
 <?php
 
-// Reuse the in-memory panel fixtures; no real commands, keys or game-file changes.
-$fixtureFile = __DIR__ . '/../../tests/backend.php';
-require is_file($fixtureFile) ? $fixtureFile : '/tmp/mcplayers-tests/backend.php';
+// In-memory panel fixtures; no real commands, keys or game-file changes.
+require __DIR__ . '/panel.php';
 
 use Pterodactyl\BlueprintFramework\Extensions\bedrockplayers\Gamertag;
 use Pterodactyl\BlueprintFramework\Extensions\bedrockplayers\QueryTarget as BedrockTarget;

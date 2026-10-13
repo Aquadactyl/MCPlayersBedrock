@@ -9,11 +9,11 @@ artifacts = ["bedrock-snapshots-nukkit-1.0.0.jar", "endstone_bedrock_snapshots-1
 with ZipFile(output, "w", ZIP_DEFLATED) as archive:
     for name in artifacts:
         archive.write(root / "dist" / name, name)
-    archive.write(root / "bedrock/bridges/README.md", "README.md")
+    archive.write(root / "bridges/README.md", "README.md")
     archive.write(root / "LICENSE", "LICENSE")
-    for path in (root / "bedrock/bridges").rglob("*"):
+    for path in (root / "bridges").rglob("*"):
         if path.is_file() and path.suffix in {".py", ".java", ".php", ".yml", ".toml"}:
-            archive.write(path, "source/" + path.relative_to(root / "bedrock/bridges").as_posix())
+            archive.write(path, "source/" + path.relative_to(root / "bridges").as_posix())
 with ZipFile(output) as archive:
     assert archive.testzip() is None
 digest = hashlib.sha256(output.read_bytes()).hexdigest()
