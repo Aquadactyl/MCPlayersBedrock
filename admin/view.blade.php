@@ -63,6 +63,7 @@
     }
 
     .mbp-admin .mbp-admin-configure:focus-visible,
+    .mbp-admin a:focus-visible,
     .mbp-admin summary:focus-visible {
         outline: 2px solid var(--aqua-accent, #78d4cc);
         outline-offset: 4px;
@@ -178,6 +179,62 @@
 
     .mbp-admin .mbp-admin-aside p + p {
         margin-top: 12px;
+    }
+
+    .mbp-admin .mbp-admin-downloads {
+        margin: 16px 0;
+        padding: 0;
+        border: 1px solid var(--aqua-border, #303942);
+        border-radius: 5px;
+        list-style: none;
+    }
+
+    .mbp-admin .mbp-admin-downloads li + li {
+        border-top: 1px solid var(--aqua-border, #303942);
+    }
+
+    .mbp-admin .mbp-admin-downloads a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 44px;
+        padding: 10px 12px;
+        color: var(--aqua-text, #d7dce1);
+        text-decoration: none;
+    }
+
+    .mbp-admin .mbp-admin-downloads a:hover {
+        background: var(--aqua-raised, #272e35);
+        color: var(--aqua-accent, #78d4cc);
+    }
+
+    .mbp-admin .mbp-admin-downloads a:focus-visible {
+        outline-offset: -3px;
+    }
+
+    .mbp-admin .mbp-admin-downloads small {
+        display: block;
+        color: var(--aqua-muted, #9ca5af);
+        font-size: 11px;
+    }
+
+    .mbp-admin .mbp-admin-download-format {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+    }
+
+    .mbp-admin .mbp-admin-guide {
+        color: var(--aqua-accent, #78d4cc);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .mbp-admin .mbp-admin-guide:hover {
+        color: var(--aqua-accent-hover, #a4e3dc);
     }
 
     .mbp-admin code {
@@ -369,6 +426,28 @@
             <section aria-labelledby="mbp-admin-inventory-title">
                 <h3 id="mbp-admin-inventory-title">Inventory snapshots</h3>
                 <p>Install a snapshot exporter on the game server to read inventory, hearts, hunger and XP. Player lists and moderation work without one.</p>
+                <ul class="mbp-admin-downloads" role="list" aria-label="Download snapshot exporters">
+                    <li>
+                        <a href="https://github.com/Aquadactyl/MCPlayersBedrock/raw/refs/heads/main/dist/endstone_bedrock_snapshots-1.0.0-py3-none-any.whl" download aria-label="Download Endstone snapshot exporter">
+                            <span>Endstone<small>API 0.11</small></span>
+                            <span class="mbp-admin-download-format">.whl <i class="fa fa-download" aria-hidden="true"></i></span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/Aquadactyl/MCPlayersBedrock/raw/refs/heads/main/dist/bedrock-snapshots-nukkit-1.0.0.jar" download aria-label="Download Nukkit snapshot exporter">
+                            <span>Nukkit<small>Java 8+</small></span>
+                            <span class="mbp-admin-download-format">.jar <i class="fa fa-download" aria-hidden="true"></i></span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/Aquadactyl/MCPlayersBedrock/raw/refs/heads/main/dist/bedrock-snapshots-pocketmine-1.0.0.phar" download aria-label="Download PocketMine-MP snapshot exporter">
+                            <span>PocketMine-MP<small>API 5</small></span>
+                            <span class="mbp-admin-download-format">.phar <i class="fa fa-download" aria-hidden="true"></i></span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="mbp-admin-note">Place the matching file in your server's <code>plugins</code> folder, then restart the server. <a class="mbp-admin-guide" href="https://github.com/Aquadactyl/MCPlayersBedrock/blob/main/bridges/README.md" target="_blank" rel="noopener noreferrer">Installation guide</a>.</p>
+                <p class="mbp-admin-note">Official Bedrock Dedicated Server cannot load these plugins.</p>
                 <code class="mbp-admin-file">/bedrock-player-snapshots.json</code>
                 <p class="mbp-admin-note">The exporter must write this file in the game server root. Users also need file listing and file content permissions.</p>
                 <p class="mbp-admin-note">Snapshots are read-only. Bedrock gamertags do not use Java player saves or Java skins.</p>
