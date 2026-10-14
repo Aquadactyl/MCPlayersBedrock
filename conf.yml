@@ -2,7 +2,7 @@ info:
   name: "Bedrock Players"
   identifier: "bedrockplayers"
   description: "Bedrock player rosters, moderation and exported inventory snapshots."
-  version: "1.0.0"
+  version: "1.0.1"
   target: "beta-2026-08"
   author: "RepGraphics"
   icon: "assets/icon.svg"

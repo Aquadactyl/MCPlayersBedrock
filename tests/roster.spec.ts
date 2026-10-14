@@ -3,6 +3,35 @@ import { RosterParser } from "@blueprint/extensions/bedrockplayers/roster";
 import { validGamertag } from "@blueprint/extensions/bedrockplayers/gamertag";
 
 describe("Bedrock native console rosters", () => {
+  it.each([
+    "[12:35:17 INFO]: ",
+    "\u001b[32m[12:35:17 INFO]:\u001b[0m ",
+    "[2026-10-14 12:35:17:123 INFO]: ",
+  ])("reads Endstone's two-line list with logger prefix %j", (prefix) => {
+    const parser = new RosterParser();
+    expect(parser.feed(`${prefix}There are 1/10 players online:`)).toBeNull();
+    expect(parser.feed(`${prefix}Rep Graphics`)).toEqual({
+      status: "available",
+      source: "console",
+      complete: true,
+      online: 1,
+      maximum: 10,
+      players: [{ name: "Rep Graphics", uuid: null }],
+    });
+  });
+  it("reads Endstone's live ANSI prompt and cursor-control frames", () => {
+    const parser = new RosterParser();
+    expect(
+      parser.feed(
+        "> \u001b[1G\u001b[J\u001b[m[12:42:05 INFO]: There are 1/10 players online:\u001b[m",
+      ),
+    ).toBeNull();
+    expect(
+      parser.feed(
+        "> \u001b[3G\u001b[J\u001b[3G\u001b[1G\u001b[J\u001b[m[12:42:05 INFO]: Rep Graphics\u001b[m",
+      ),
+    ).toMatchObject({ complete: true, online: 1, players: [{ name: "Rep Graphics" }] });
+  });
   it("reads official BDS timestamps and spaced gamertags", () => {
     const parser = new RosterParser();
     expect(parser.feed("[2026-10-13 12:00:00:123 INFO] There are 2/20 players online:")).toBeNull();
@@ -29,6 +58,10 @@ describe("Bedrock native console rosters", () => {
     const parser = new RosterParser();
     expect(parser.feed("RepGraphics")).toBeNull();
     expect(parser.feed("<RepGraphics> There are 1/20 players online: Admin")).toBeNull();
+    expect(
+      parser.feed("> [12:35:17 INFO]: <Rep Graphics> There are 1/20 players online: Admin"),
+    ).toBeNull();
+    expect(parser.feed("> There are 1/20 players online: Admin")).toBeNull();
     expect(parser.result()).toBeNull();
   });
   it("distinguishes an empty server from incomplete or duplicate replies", () => {

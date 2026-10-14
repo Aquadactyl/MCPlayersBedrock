@@ -1,7 +1,7 @@
 # Bedrock Players for Aquadactyl
 
 Independent Blueprint addon for official Bedrock Dedicated Server, Endstone,
-Nukkit/PowerNukkit and PocketMine-MP. Identifier: `bedrockplayers`, version 1.0.0,
+Nukkit/PowerNukkit and PocketMine-MP. Identifier: `bedrockplayers`, version 1.0.1,
 Blueprint beta-2026-08. Can be installed alongside the Java `mcplayers` addon.
 
 ## Features

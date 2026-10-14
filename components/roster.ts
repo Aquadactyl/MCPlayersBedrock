@@ -17,8 +17,9 @@ function cleanLine(line: string) {
       // eslint-disable-next-line no-control-regex
       .replace(/\x1b\[[0-?]*[ -/]*[@-~]/gu, "")
       .replace(/§[0-9a-z]/giu, "")
+      // Endstone prepends an interactive prompt and a colon after its timestamp.
       .replace(
-        /^(?:\[\d{4}-\d{2}-\d{2} [\d:.]+ INFO\]\s*|\[[\d:.]+(?: INFO)?\]\s*|[\d:.]+ \[INFO\]\s*)/u,
+        /^(?:>\s*)*(?:\[\d{4}-\d{2}-\d{2} [\d:.]+ INFO\]|\[[\d:.]+(?: INFO)?\]|[\d:.]+ \[INFO\]):?\s*/u,
         "",
       )
       .replace(/^\[(?:INFO|CONSOLE|Server thread\/INFO)\]:?\s*/u, "")

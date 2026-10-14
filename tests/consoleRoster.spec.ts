@@ -45,6 +45,31 @@ afterEach(() => {
 });
 
 describe("authenticated Bedrock console reader", () => {
+  it("reads an Endstone roster across separate console events", async () => {
+    const { promise, socket } = await start();
+    socket.emit("auth success");
+    socket.emit(
+      "console output",
+      "> \u001b[1G\u001b[J\u001b[m[12:35:17 INFO]: There are 1/10 players online:\u001b[m",
+    );
+    expect(socket.close).not.toHaveBeenCalled();
+    socket.emit(
+      "console output",
+      "> \u001b[3G\u001b[J\u001b[3G\u001b[1G\u001b[J\u001b[m[12:35:17 INFO]: Rep Graphics\u001b[m",
+    );
+    await Promise.all([
+      promise.then((result) =>
+        expect(result).toMatchObject({
+          complete: true,
+          online: 1,
+          maximum: 10,
+          players: [{ name: "Rep Graphics", uuid: null }],
+        }),
+      ),
+      vi.advanceTimersByTimeAsync(8001),
+    ]);
+    expect(socket.close).toHaveBeenCalledTimes(1);
+  });
   it("waits for authentication and submits only the fixed list request", async () => {
     const { promise, socket } = await start();
     socket.emit("console output", "There are 1/20 players online: OldName");
